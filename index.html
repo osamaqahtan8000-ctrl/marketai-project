@@ -1,0 +1,529 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MarketAI - المتجر الذكي وسلة المشتريات</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 min-h-screen relative overflow-x-hidden">
+
+  <!-- شريط التنقل العلوي -->
+  <header class="bg-indigo-600 text-white shadow-md py-4 px-8 sticky top-0 z-40 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <span class="text-3xl">🛍️</span>
+      <div>
+        <h1 class="text-2xl font-black tracking-wide">MarketAI</h1>
+        <p class="text-xs text-indigo-200">المنصة الذكية للتجارة الإلكترونية والتسويق</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <span id="productCounter"
+        class="hidden sm:inline bg-indigo-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-indigo-400">
+        المنتجات في المتجر: 0
+      </span>
+      <!-- زر سلة المشتريات -->
+      <button onclick="toggleCart()"
+        class="relative bg-white text-indigo-700 font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow hover:bg-slate-100 transition">
+        <span>🛒 السلة</span>
+        <span id="cartCountBadge" class="bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full font-black">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- درج سلة المشتريات الجانبي -->
+  <div id="cartDrawerBackdrop" onclick="toggleCart()"
+    class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden transition-opacity"></div>
+  <div id="cartDrawer"
+    class="fixed top-0 left-0 h-full w-full sm:w-96 bg-white shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 flex flex-col justify-between">
+    <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">🛍️</span>
+        <h3 class="font-black text-lg text-slate-800">سلة المشتريات</h3>
+      </div>
+      <button onclick="toggleCart()" class="text-slate-400 hover:text-slate-600 text-xl font-bold p-1">✕</button>
+    </div>
+
+    <div id="cartItemsList" class="flex-1 overflow-y-auto p-5 space-y-4"></div>
+
+    <div class="p-5 border-t border-slate-100 bg-slate-50 space-y-4">
+      <div class="flex justify-between items-center text-slate-700 font-bold">
+        <span>المجموع الإجمالي:</span>
+        <span id="cartTotalPrice" class="text-2xl font-black text-emerald-600">$0</span>
+      </div>
+      <button onclick="checkoutCart()" id="btnCheckout"
+        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl transition flex justify-center items-center gap-2 shadow-lg shadow-emerald-600/20">
+        <span>💳 إتمام الطلب والدفع الفوري</span>
+      </button>
+    </div>
+  </div>
+
+  <main class="max-w-7xl mx-auto p-6 space-y-10">
+
+    <!-- القسم الأول: استوديو الذكاء الاصطناعي لتوليد وحفظ المنتجات -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <!-- إدخال بيانات المنتج -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-2xl">✍️</span>
+            <h2 class="text-xl font-bold text-slate-800">توليد المحتوى التسويقي (Gemini AI)</h2>
+          </div>
+          <p class="text-slate-500 text-sm mb-6">أدخل تفاصيل منتجك لتوليد نصوص ترويجية دقيقة وحفظه مباشرة في المتجر.</p>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-slate-700">اسم المنتج *</label>
+              <input id="prodName" type="text" placeholder="مثال: ساعة يد رجالية كلاسيكية"
+                class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-sm font-semibold mb-1 text-slate-700">التصنيف *</label>
+                <input id="prodCategory" type="text" placeholder="مثال: ساعات"
+                  class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold mb-1 text-slate-700">السعر المقترح ($) *</label>
+                <input id="prodPrice" type="number" placeholder="مثال: 85"
+                  class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-slate-700">الجمهور المستهدف</label>
+              <input id="prodAudience" type="text" placeholder="مثال: رجال الأعمال والشباب"
+                class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1 text-slate-700">رابط صورة المنتج</label>
+              <input id="prodImage" type="text" placeholder="https://..."
+                class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <button onclick="generateMarketing()" id="btnGenerate"
+              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition flex justify-center items-center gap-2">
+              <span>توليد المحتوى التسويقي</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- المعاينة والاعتماد للنشر -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-2xl">✨</span>
+            <h2 class="text-xl font-bold text-slate-800">المحتوى المولّد وحفظ المنتج</h2>
+          </div>
+
+          <div id="placeholderBox"
+            class="h-64 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl text-slate-400">
+            <span class="text-4xl mb-2">💡</span>
+            <p class="text-sm">أدخل بيانات المنتج واضغط "توليد المحتوى التسويقي" لتظهر النتائج هنا.</p>
+          </div>
+
+          <div id="marketingResult" class="hidden space-y-4">
+            <div>
+              <h4 class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-1">الوصف الإعلاني</h4>
+              <p id="resDesc"
+                class="text-sm text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100"></p>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-1">الكلمات المفتاحية (SEO)</h4>
+              <div id="resTags" class="flex flex-wrap gap-1.5"></div>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-1">منشور التواصل الاجتماعي</h4>
+              <p id="resSocial" class="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100"></p>
+            </div>
+
+            <button onclick="saveProductToStore()" id="btnSaveStore"
+              class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition flex justify-center items-center gap-2 shadow-sm">
+              <span>📦 إضافة المنتج إلى المتجر (Storefront)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- القسم الثاني: كتالوج منتجات المتجر مع أدوات البحث والتصفية -->
+    <section class="border-t border-slate-200 pt-8 space-y-6">
+      <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+        <div>
+          <h3 class="text-2xl font-bold text-slate-900">كتالوج منتجات المتجر</h3>
+          <p class="text-sm text-slate-500">ابحث وصفِّ المنتجات المعروضة بالذكاء الاصطناعي</p>
+        </div>
+        <button onclick="clearAllProducts()"
+          class="self-start md:self-auto text-xs text-rose-500 hover:text-rose-700 font-semibold border border-rose-200 hover:border-rose-400 px-3 py-1.5 rounded-lg transition">
+          مسح الكتالوج
+        </button>
+      </div>
+
+      <!-- عناصر البحث والتصفية -->
+      <div
+        class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+        <!-- شريط البحث الفوري -->
+        <div class="w-full md:w-80 relative">
+          <input type="text" id="searchInput" oninput="handleSearchFilter()" placeholder="🔍 ابحث عن منتج أو وصف..."
+            class="w-full border border-slate-300 rounded-xl py-2 px-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <!-- أزرار التصنيفات (Chips) -->
+        <div id="categoryChips" class="w-full md:w-auto flex flex-wrap gap-2 items-center">
+          <!-- يتم ملء التصنيفات ديناميكياً -->
+        </div>
+      </div>
+
+      <!-- شبكة المنتجات -->
+      <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+    </section>
+
+  </main>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+    let currentGenerated = null;
+    let selectedCategory = "all";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderProducts();
+      renderCart();
+    });
+
+    async function generateMarketing() {
+      const name = document.getElementById("prodName").value.trim();
+      const category = document.getElementById("prodCategory").value.trim();
+      const target_audience = document.getElementById("prodAudience").value.trim() || "الجميع";
+      const btn = document.getElementById("btnGenerate");
+
+      if (!name || !category) {
+        alert("يرجى إدخال اسم المنتج وتصنيفه أولاً.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "جاري التوليد عبر Gemini...";
+
+      try {
+        const res = await fetch(`${API_BASE}/generate-marketing`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, category, target_audience })
+        });
+        const data = await res.json();
+        currentGenerated = data;
+
+        document.getElementById("resDesc").innerText = data.description || "";
+        document.getElementById("resSocial").innerText = data.social_caption || "";
+
+        const tagsContainer = document.getElementById("resTags");
+        tagsContainer.innerHTML = "";
+        (data.seo_keywords || []).forEach(tag => {
+          const badge = document.createElement("span");
+          badge.className = "bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-full font-medium";
+          badge.innerText = `#${tag}`;
+          tagsContainer.appendChild(badge);
+        });
+
+        document.getElementById("placeholderBox").classList.add("hidden");
+        document.getElementById("marketingResult").classList.remove("hidden");
+      } catch (err) {
+        alert("خطأ في الاتصال بالخادم: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "توليد المحتوى التسويقي";
+      }
+    }
+
+    function saveProductToStore() {
+      const name = document.getElementById("prodName").value.trim();
+      const category = document.getElementById("prodCategory").value.trim();
+      const price = parseFloat(document.getElementById("prodPrice").value) || 50;
+      const image = document.getElementById("prodImage").value.trim() || "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=700&auto=format&fit=crop&q=80";
+
+      if (!currentGenerated) {
+        alert("يرجى توليد المحتوى أولاً قبل الحفظ.");
+        return;
+      }
+
+      const newProduct = {
+        id: Date.now(),
+        name,
+        category,
+        price,
+        image,
+        description: currentGenerated.description,
+        tags: currentGenerated.seo_keywords || [],
+        social: currentGenerated.social_caption || ""
+      };
+
+      const products = getStoredProducts();
+      products.unshift(newProduct);
+      localStorage.setItem("marketai_products", JSON.stringify(products));
+
+      renderProducts();
+      alert("تمت إضافة المنتج إلى المتجر بنجاح!");
+    }
+
+    function getStoredProducts() {
+      return JSON.parse(localStorage.getItem("marketai_products") || "[]");
+    }
+
+    function handleSearchFilter() {
+      renderProducts();
+    }
+
+    function setFilterCategory(cat) {
+      selectedCategory = cat;
+      renderProducts();
+    }
+
+    function renderCategoryChips(products) {
+      const container = document.getElementById("categoryChips");
+      const categories = ["all", ...new Set(products.map(p => p.category.trim()).filter(Boolean))];
+
+      container.innerHTML = categories.map(cat => {
+        const isSelected = selectedCategory === cat;
+        const label = cat === "all" ? "جميع المنتجات" : cat;
+        return `
+          <button 
+            onclick="setFilterCategory('${cat}')" 
+            class="text-xs font-bold px-3 py-1.5 rounded-lg transition ${isSelected
+            ? 'bg-indigo-600 text-white shadow-sm'
+            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }"
+          >
+            ${label}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderProducts() {
+      const allProducts = getStoredProducts();
+      const grid = document.getElementById("productsGrid");
+      const searchKeyword = (document.getElementById("searchInput") ? document.getElementById("searchInput").value.trim().toLowerCase() : "");
+
+      document.getElementById("productCounter").innerText = `المنتجات في المتجر: ${allProducts.length}`;
+
+      // بناء أزرار التصنيفات
+      renderCategoryChips(allProducts);
+
+      // تصفية المنتجات حسب البحث والتصنيف
+      const filtered = allProducts.filter(p => {
+        const matchCategory = selectedCategory === "all" || p.category === selectedCategory;
+        const matchSearch = !searchKeyword ||
+          p.name.toLowerCase().includes(searchKeyword) ||
+          p.description.toLowerCase().includes(searchKeyword) ||
+          (p.tags && p.tags.some(t => t.toLowerCase().includes(searchKeyword)));
+        return matchCategory && matchSearch;
+      });
+
+      if (allProducts.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-400 bg-white border border-slate-200 rounded-2xl">
+            <span class="text-4xl block mb-2">🏷️</span>
+            <p class="font-medium">المتجر فارغ حالياً. قم بتوليد منتج واضغط "إضافة المنتج إلى المتجر".</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-400 bg-white border border-slate-200 rounded-2xl">
+            <span class="text-4xl block mb-2">🔍</span>
+            <p class="font-medium">لم يتم العثور على أي منتج يطابق معايير البحث.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => `
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between">
+          <div>
+            <div class="h-48 bg-slate-100 overflow-hidden relative">
+              <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover">
+              <span class="absolute top-2 right-2 bg-indigo-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
+                ${p.category}
+              </span>
+            </div>
+            <div class="p-4 space-y-2">
+              <div class="flex justify-between items-start">
+                <h4 class="font-bold text-slate-800 line-clamp-1">${p.name}</h4>
+                <span class="text-emerald-600 font-extrabold text-base">$${p.price}</span>
+              </div>
+              <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">${p.description}</p>
+              <div class="flex flex-wrap gap-1 pt-1">
+                ${(p.tags || []).slice(0, 3).map(t => `<span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded">#${t}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+          
+          <div class="p-4 border-t border-slate-100 space-y-2 bg-slate-50/50">
+            <button onclick="addToCart(${p.id})" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl transition text-xs flex justify-center items-center gap-1.5 shadow-sm">
+              <span>🛒 أضف إلى السلة</span>
+            </button>
+            <div class="flex justify-between items-center pt-1">
+              <button onclick="copySocialCaption(${p.id})" class="text-[11px] text-indigo-600 hover:underline font-semibold">
+                نسخ المنشور
+              </button>
+              <button onclick="deleteProduct(${p.id})" class="text-[11px] text-rose-500 hover:underline font-bold">
+                حذف المنتج
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function deleteProduct(id) {
+      if (confirm("هل تريد حذف هذا المنتج من المتجر؟")) {
+        const products = getStoredProducts().filter(p => p.id !== id);
+        localStorage.setItem("marketai_products", JSON.stringify(products));
+        renderProducts();
+      }
+    }
+
+    function clearAllProducts() {
+      if (confirm("هل أنت متأكد من مسح جميع المنتجات؟")) {
+        localStorage.removeItem("marketai_products");
+        localStorage.removeItem("marketai_cart");
+        renderProducts();
+        renderCart();
+      }
+    }
+
+    function copySocialCaption(id) {
+      const product = getStoredProducts().find(p => p.id === id);
+      if (product && product.social) {
+        navigator.clipboard.writeText(product.social);
+        alert("تم نسخ منشور التواصل الاجتماعي إلى الحافظة!");
+      }
+    }
+
+    // منطق سلة المشتريات والدفع
+    function getCart() {
+      return JSON.parse(localStorage.getItem("marketai_cart") || "[]");
+    }
+
+    function saveCart(cart) {
+      localStorage.setItem("marketai_cart", JSON.stringify(cart));
+      renderCart();
+    }
+
+    function toggleCart() {
+      const drawer = document.getElementById("cartDrawer");
+      const backdrop = document.getElementById("cartDrawerBackdrop");
+
+      const isOpen = !drawer.classList.contains("-translate-x-full");
+      if (isOpen) {
+        drawer.classList.add("-translate-x-full");
+        backdrop.classList.add("hidden");
+      } else {
+        drawer.classList.remove("-translate-x-full");
+        backdrop.classList.remove("hidden");
+      }
+    }
+
+    function addToCart(productId) {
+      const product = getStoredProducts().find(p => p.id === productId);
+      if (!product) return;
+
+      const cart = getCart();
+      const existing = cart.find(item => item.id === productId);
+
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ ...product, quantity: 1 });
+      }
+
+      saveCart(cart);
+      toggleCart();
+    }
+
+    function updateQuantity(productId, delta) {
+      const cart = getCart();
+      const item = cart.find(i => i.id === productId);
+      if (!item) return;
+
+      item.quantity += delta;
+      if (item.quantity <= 0) {
+        const index = cart.indexOf(item);
+        cart.splice(index, 1);
+      }
+
+      saveCart(cart);
+    }
+
+    function renderCart() {
+      const cart = getCart();
+      const list = document.getElementById("cartItemsList");
+      const badge = document.getElementById("cartCountBadge");
+      const totalPrice = document.getElementById("cartTotalPrice");
+
+      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+      badge.innerText = totalItems;
+      totalPrice.innerText = `$${totalAmount.toFixed(2)}`;
+
+      if (cart.length === 0) {
+        list.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-slate-400 py-12">
+            <span class="text-5xl mb-2">🛒</span>
+            <p class="font-bold text-sm">سلتك فارغة تماماً</p>
+            <p class="text-xs text-slate-400 mt-1">تصفح المنتجات واضغط "أضف إلى السلة"</p>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = cart.map(item => `
+        <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded-lg">
+          <div class="flex-1">
+            <h5 class="text-sm font-bold text-slate-800 line-clamp-1">${item.name}</h5>
+            <span class="text-emerald-600 font-extrabold text-xs">$${item.price}</span>
+            <div class="flex items-center gap-2 mt-1">
+              <button onclick="updateQuantity(${item.id}, -1)" class="w-6 h-6 bg-white border border-slate-300 rounded font-black text-xs hover:bg-slate-100">-</button>
+              <span class="text-xs font-bold">${item.quantity}</span>
+              <button onclick="updateQuantity(${item.id}, 1)" class="w-6 h-6 bg-white border border-slate-300 rounded font-black text-xs hover:bg-slate-100">+</button>
+            </div>
+          </div>
+          <span class="font-bold text-sm text-slate-700">$${(item.price * item.quantity).toFixed(2)}</span>
+        </div>
+      `).join('');
+    }
+
+    function checkoutCart() {
+      const cart = getCart();
+      if (cart.length === 0) {
+        alert("سلة المشتريات فارغة!");
+        return;
+      }
+
+      const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+      const confirmPay = confirm(`إجمالي المبلغ المستحق: $${totalAmount.toFixed(2)}\nهل تود تأكيد الدفع وإتمام عملية الشراء؟`);
+      if (confirmPay) {
+        localStorage.removeItem("marketai_cart");
+        renderCart();
+        toggleCart();
+        alert("🎉 تم تأكيد الطلب بنجاح وسداد الفاتورة! شكراً لتسوقك من MarketAI.");
+      }
+    }
+  </script>
+</body>
+
+</html>
